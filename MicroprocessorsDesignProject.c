@@ -114,9 +114,9 @@ int main (void) {
 void sendSMS(void) {
     char *account_sid = "AC79e06114ec6ec43c135b256436cbc7f7";
     char *auth_token = "41b4c5557dd0b23577f055ebe708924d";
-    char *message = "ALERT! Someone has intruded your ass. Get fucked. This is an automated message. Seek help or acknowledge immediately.";
+    char *message = "ALERT! Someone has intruded your home. This is an automated message. Seek help or acknowledge immediately.";
     char *from_number = "+16474931887";
-    char *to_number = "+15102927517";
+    char *to_number = "+6478087047";
     
     twilio_send_message(account_sid,
                         auth_token,
