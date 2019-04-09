@@ -3,9 +3,9 @@
 #include "address_map_arm.h"
 #include "GSInterface.h"
 #include <unistd.h>
-#include <string.h>
-#include <curl/curl.h>
-#include <windows.h>
+//#include <curl/curl.h>
+
+
 
 
 /* Default - 10K max memory for our param strings */
@@ -22,7 +22,7 @@ int twilio_send_message(char *account_sid,
                         char *picture_url,
                         bool verbose);
 
-volatile int lookUpTable[16] = {0x3F, 0x37, 0x71, 0x77, 0x38, 0x79, 0x50, 0x78}; //hex disp O, N, F, A, L, E, R, T
+volatile int lookupTable[] = {0x3F, 0x37, 0x71, 0x77, 0x38, 0x79, 0x50, 0x78, 0x00}; //hex disp O, N, F, A, L, E, R, T, off
 volatile unsigned char *(HEX3_HEX0_BASE_ptr) = (unsigned char *)HEX3_HEX0_BASE; //first 4
 volatile unsigned char *(HEX5_HEX4_BASE_ptr) = (unsigned char *)HEX5_HEX4_BASE; //next 2
 
@@ -51,58 +51,73 @@ int main (void) {
     
     I2C0Init();
     // initial state is OFF
-    *((char*)HEX3_HEX0_BASE) = lookupTable[2];
-    *((char*)HEX3_HEX0_BASE + 1) = lookupTable[2];
-    *((char*)HEX3_HEX0_BASE + 2) = lookupTable[0];
+    *(HEX3_HEX0_BASE_ptr) = lookupTable[2];
+    *(HEX3_HEX0_BASE_ptr + 1) = lookupTable[2];
+    *(HEX3_HEX0_BASE_ptr + 2) = lookupTable[0];
     
-    if (*buttons == 0b0001) {
-        armed =1;
-        // display "ARMED/ON"
-        *((char*)HEX3_HEX0_BASE) = lookupTable[0];
-        *((char*)HEX3_HEX0_BASE + 1) = lookupTable[1];
-    }
+    
     
     if (ReadGSRegister(GS_DEVID) == 0xE5)
     {
         GSInit();
-        while (armed){
-            
-            MultiReadGS(GS_DATAX0, x, 2);
-            signed short xInt = ((x[1] << 8) | x[0]);
-            int threshold = ((xint + 100) / 25); // change to find threshold value
-            
-            if (threshold > 0 && threshold < 10) {
-                alert = true;
-                //display "Intrusion Alert" and send text
-                *((char*)HEX3_HEX0_BASE) = lookupTable[7];
-                *((char*)HEX3_HEX0_BASE + 1) = lookupTable[6];
-                *((char*)HEX3_HEX0_BASE + 2) = lookupTable[5];
-                *((char*)HEX3_HEX0_BASE + 3) = lookupTable[4];
-                *((char*)HEX5_HEX4_BASE) = lookupTable[3];
-                
-                
-                // Send twilio message
-                sendSMS();
-                
-                Sleep(10000);
-            }
-            
-            if (*buttons == 0b0010 && alert) {
-                // change display to Armed/ON
-                *((char*)HEX3_HEX0_BASE) = lookupTable[1];
-                *((char*)HEX3_HEX0_BASE + 1) = lookupTable[0];
-            }
-            
-            if (*buttons == 0b0001) {
-                armed = 0;
-                // display "DISARMED/OFF"
-                *((char*)HEX3_HEX0_BASE) = lookupTable[2];
-                *((char*)HEX3_HEX0_BASE + 1) = lookupTable[2];
-                *((char*)HEX3_HEX0_BASE + 2) = lookupTable[0];
-            }
-            
+		
+		while (1){
+			if (*buttons == 0b0001) {
+			armed =1;
+			// display "ARMED/ON"
+			*(HEX3_HEX0_BASE_ptr) = lookupTable[1];
+			*(HEX3_HEX0_BASE_ptr + 1) = lookupTable[0];
+			*(HEX3_HEX0_BASE_ptr + 2) = lookupTable[8];
+			}
+			while (armed){
+				
+				MultiReadGS(GS_DATAY0, x, 2);
+				signed short xInt = ((x[1] << 8) | x[0]);
+				int threshold = ((xInt + 260) / 52); // change to find threshold value
+				
+				if (threshold < 2) {
+					alert = true;
+					//display "Intrusion Alert" and send text
+					*(HEX3_HEX0_BASE_ptr) = lookupTable[7];
+					*(HEX3_HEX0_BASE_ptr+ 1) = lookupTable[6];
+					*(HEX3_HEX0_BASE_ptr + 2) = lookupTable[5];
+					*(HEX3_HEX0_BASE_ptr + 3) = lookupTable[4];
+					*(HEX5_HEX4_BASE_ptr) = lookupTable[3];
+					*(HEX5_HEX4_BASE_ptr + 1) = lookupTable[8];
+					
+					
+					// Send twilio message
+					//sendSMS();
+				  
+				}
+				
+				if (*buttons == 0b0010 && alert) {
+					
+					// change display to Armed/ON
+					*(HEX3_HEX0_BASE_ptr) = lookupTable[1];
+					*(HEX3_HEX0_BASE_ptr + 1) = lookupTable[0];
+					*(HEX3_HEX0_BASE_ptr + 2) = lookupTable[8];
+					*(HEX3_HEX0_BASE_ptr + 2) = lookupTable[8];
+					
+					*(HEX5_HEX4_BASE_ptr) = lookupTable[8];
+					*(HEX5_HEX4_BASE_ptr + 1) = lookupTable[8];
+					alert = false;
+				}
+				
+				if (*buttons == 0b0100) {
+					armed = 0;
+					// display "DISARMED/OFF"
+					*(HEX3_HEX0_BASE_ptr) = lookupTable[2];
+					*(HEX3_HEX0_BASE_ptr + 1) = lookupTable[2];
+					*(HEX3_HEX0_BASE_ptr + 2) = lookupTable[0];
+					
+					
+					*(HEX5_HEX4_BASE_ptr) = lookupTable[8];
+					*(HEX5_HEX4_BASE_ptr + 1) = lookupTable[8];
+				}
+				
+			}
         }
-        
         
     }
 }
@@ -111,7 +126,7 @@ int main (void) {
 /** PRAGMA MARK: Twilio SMS */
 
 /** Twilio Helper Function */
-void sendSMS(void) {
+/*void sendSMS(void) {
     char *account_sid = "AC79e06114ec6ec43c135b256436cbc7f7";
     char *auth_token = "41b4c5557dd0b23577f055ebe708924d";
     char *message = "ALERT! Someone has intruded your home. This is an automated message. Seek help or acknowledge immediately.";
@@ -131,7 +146,7 @@ void sendSMS(void) {
 /*
  * _twilio_null_write is a portable way to ignore the response from
  * curl_easy_perform
- */
+ 
 size_t _twilio_null_write(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
     return size * nmemb;
@@ -152,7 +167,7 @@ size_t _twilio_null_write(char *ptr, size_t size, size_t nmemb, void *userdata)
  *  Optional:
  *         - picture_url: If picture URL is not NULL and is a valid image url, a
  MMS will be sent by Twilio.
- */
+ 
 int twilio_send_message(char *account_sid,
                         char *auth_token,
                         char *message,
@@ -250,4 +265,4 @@ int twilio_send_message(char *account_sid,
         return 0;
     }
     
-}
+}*/
