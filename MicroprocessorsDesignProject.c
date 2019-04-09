@@ -3,13 +3,15 @@
 #include "address_map_arm.h"
 #include "GSInterface.h"
 #include <unistd.h>
-//#include <curl/curl.h>
+#include <curl/curl.h>
 
 
 
 
 /* Default - 10K max memory for our param strings */
 #define MAX_TWILIO_MESSAGE_SIZE 10000
+
+// defines boolean operator in C as it does not exist in library
 typedef enum { false, true }    bool;
 
 /** Prototypes */
@@ -56,9 +58,10 @@ int main (void) {
     *(HEX3_HEX0_BASE_ptr + 2) = lookupTable[0];
     
     
-    
+    // ensures reading of correct register
     if (ReadGSRegister(GS_DEVID) == 0xE5)
     {
+        // initialization of GS sensor
         GSInit();
 		
 		while (1){
@@ -87,7 +90,7 @@ int main (void) {
 					
 					
 					// Send twilio message
-					//sendSMS();
+					sendSMS();
 				  
 				}
 				
@@ -126,12 +129,12 @@ int main (void) {
 /** PRAGMA MARK: Twilio SMS */
 
 /** Twilio Helper Function */
-/*void sendSMS(void) {
+void sendSMS(void) {
     char *account_sid = "AC79e06114ec6ec43c135b256436cbc7f7";
     char *auth_token = "41b4c5557dd0b23577f055ebe708924d";
     char *message = "ALERT! Someone has intruded your home. This is an automated message. Seek help or acknowledge immediately.";
     char *from_number = "+16474931887";
-    char *to_number = "+6478087047";
+    char *to_number = "+16478087047";
     
     twilio_send_message(account_sid,
                         auth_token,
@@ -143,31 +146,13 @@ int main (void) {
 }
 
 
-/*
- * _twilio_null_write is a portable way to ignore the response from
- * curl_easy_perform
  
 size_t _twilio_null_write(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
     return size * nmemb;
 }
 
-/*
- * twilio_send_message gathers the necessary parameters for a Twilio SMS or MMS.
- *
- * Inputs:
- *         - account_sid: Account SID from the Twilio console.
- *         - auth_token: Authorization from the Twilio console.
- *         - to_number: Where to send the MMS or SMS
- *         - from_number: Number in your Twilio account to use as a sender.
- *         - message_body: (Max: 1600 characters) The body of the MMS or SMS
- *               message which will be sent to the to_number.
- *         - verbose: Whether to print all the responses
- *
- *  Optional:
- *         - picture_url: If picture URL is not NULL and is a valid image url, a
- MMS will be sent by Twilio.
- 
+
 int twilio_send_message(char *account_sid,
                         char *auth_token,
                         char *message,
@@ -177,8 +162,7 @@ int twilio_send_message(char *account_sid,
                         bool verbose)
 {
     
-    // See: https://www.twilio.com/docs/api/rest/sending-messages for
-    // information on Twilio body size limits.
+    
     if (strlen(message) > 1600) {
         fprintf(stderr, "SMS send failed.\n"
                 "Message body must be less than 1601 characters.\n"
@@ -265,4 +249,4 @@ int twilio_send_message(char *account_sid,
         return 0;
     }
     
-}*/
+}
