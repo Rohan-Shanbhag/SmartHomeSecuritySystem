@@ -38,10 +38,17 @@ volatile unsigned char *(HEX5_HEX4_BASE_ptr) = (unsigned char *)HEX5_HEX4_BASE; 
 
 unsigned char x[2]; //two bytes (char is one byte, size 2)
 
-
+volatile int *switches = (int*)SW_BASE;
 volatile int *buttons = (int*)KEY_BASE;
 int armed = 0;
 bool alert = false;
+// password is read from switches
+int password = 7;
+int ReadSwitches(void) {
+    volatile int a;
+    a = *(SW_ptr) &= 0xF;
+    return a;
+}
 
 void GSInit(void) {
     //for +/- 2G range set D0 and D1 to 0
@@ -72,7 +79,8 @@ int main (void) {
         GSInit();
 		
 		while (1){
-			if (*buttons == 0b0001) {
+            // password must be inputed before arming system
+			if (*buttons == 0b0001 && ReadSwitches() == password) {
 			armed =1;
 			// display "ARMED/ON"
 			*(HEX3_HEX0_BASE_ptr) = lookupTable[1];
