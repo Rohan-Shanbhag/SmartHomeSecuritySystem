@@ -145,11 +145,11 @@ int main (void) {
 
 /** Twilio Helper Function */
 void sendSMS(void) {
-    char *account_sid = "AC79e06114ec6ec43c135b256436cbc7f7";
-    char *auth_token = "41b4c5557dd0b23577f055ebe708924d";
+    char *account_sid = "insert account sid here";
+    char *auth_token = "enter auth token here";
     char *message = "ALERT! Someone has intruded your home. This is an automated message. Seek help or acknowledge immediately.";
-    char *from_number = "+16474931887";
-    char *to_number = "+16478087047";
+    char *from_number = "enter from number";
+    char *to_number = "enter to number";
     
     twilio_send_message(account_sid,
                         auth_token,
@@ -159,6 +159,9 @@ void sendSMS(void) {
                         NULL,
                         false);
 }
+
+
+
 
 
  
